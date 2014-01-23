@@ -1,5 +1,6 @@
-﻿# This script will alarm if the percent of available desktops exceeds a defined Warning or Critical threshold.
-# The percentage available is calculated using the number of remote sessions and desktops provisioned within the pool.
+﻿# This script will alarm if the number of sessions approaches a defined threshold, expressed as a percent,
+# above or equal to the percentage of desktops available for a VMware View Pool.
+# the percentage available is calculated using the number of remote sessions and desktops provisioned
 # 
 Param(
 	# View Desktop Pool ID to monitor
@@ -79,11 +80,11 @@ if ($ProvisionedDesktops) {
 	Write-Debug "Get-DesktopVM for pool $PoolId was null. Setting ProvisionedDesktops to 0."
 }
 
-# percent of available desktops in the pool
+# percent of utilized desktops in the pool
 $PercentUtilized = [decimal]::Round(($SessionCount/$ProvisionedDesktops) * 100)
 Write-Debug "Percent utilized $PercentUtilized% = (Session Count $SessionCount / Provisioned Desktops $ProvisionedDesktops ) * 100"
 
-# if the percentage of available desktops is negative or greater than 100 then something is wrong
+# if the percentage of utilized desktops is negative or greater than 100 then something is wrong
 if ( ($PercentUtilized -lt 0) -or ($PercentUtilized -gt 100)) {
 	Write-Host "Unknown: Percent utilized is out of range $PercentUtilized% in $PoolId | $NagiosData"
 	exit $ReturnStateUnknown
@@ -94,18 +95,18 @@ $NagiosData = "percent_utilized=$PercentUtilized;;;;"
 
 # Nagios return states
 if ($PercentUtilized -ge $CriticalLevel) {
-	Write-Host "CRITICAL: $PercentUtilized% desktops available in $PoolId | $NagiosData"
+	Write-Host "CRITICAL: $PercentUtilized% desktops utilized in $PoolId | $NagiosData"
 	exit $ReturnStateCritical
 	}
 elseif ($PercentUtilized -ge $WarningLevel) {
-	Write-Host "WARNING: $PercentUtilized% desktops available in $PoolId | $NagiosData"
+	Write-Host "WARNING: $PercentUtilized% desktops utilized in $PoolId | $NagiosData"
 	exit $ReturnStateWarning
 	}
 elseif ($PercentUtilized -lt $WarningLevel) {
-	Write-Host "OK: $PercentUtilized% desktops available in $PoolId | $NagiosData"
+	Write-Host "OK: $PercentUtilized% desktops utilized in $PoolId | $NagiosData"
 	exit $ReturnStateOK
 	}
 else {
-	Write-Host "Unknown: $PercentUtilized% desktops in $PoolId | $NagiosData"
+	Write-Host "Unknown: $PercentUtilized% desktops utilized in $PoolId | $NagiosData"
 	exit $ReturnStateUnknown
 }

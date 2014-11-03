@@ -1,20 +1,35 @@
-﻿# This script will alarm if the number of sessions approaches a defined threshold, expressed as a percent,
-# above or equal to the percentage of desktops available for a VMware View Pool.
-# the percentage available is calculated using the number of remote sessions and desktops provisioned
+# desktopsAvailable.ps1
+# 20141102
+# mike@marseglia.org
+#
+# Tested on:
+# VMware View 5.x
 # 
+# Description:
+# Will alarm if the number of sessions approaches a defined threshold, expressed as a percent,
+# above or equal to the percentage of desktops available for a VMware View Pool.
+# Percentage available calculated using the number of remote sessions and desktops provisioned.
+# 
+# This script is meant to be used with Nagios.
+# 
+# Usage:
+# desktopsAvailable.ps1 -PoolId <vmware view pool ID>
+#
 Param(
 	# View Desktop Pool ID to monitor
+	# Mandatory, no default
 	[Parameter(Mandatory=$true)]
 	[string]$PoolId,
 
 	# Percent utilized desktops to trigger Warning
-	# Not required, default is 1
+	# Optional, default is 75
 	[int]$WarningLevel = 75,
 
 	# Percent utilized desktops to trigger Critical
-	# Not required, default is 0
+	# Optional, default is 80
 	[int]$CriticalLevel = 80,
 
+	# Set -DebugPreference to "Continue" to see debug messages
 	$DebugPreference = "SilentlyContinue"
 )
 
@@ -42,7 +57,7 @@ $PercentUtilized = 0
 $NagiosData = "percent_utilized=$PercentUtilized;;;;"
 
 # input validation
-# Number of desktops to trigger Warning must always be less than Critical.
+# Number of desktops to trigger Warning must be less than Critical.
 if ( $WarningLevel -ge $CriticalLevel) {
 	Write-Host "Unknown: Bad input. WarningLevel $WarningLevel must not be less than CriticalLevel $CriticalLevel. | $NagiosData"
 	exit $ReturnStateUnknown
